@@ -43,7 +43,9 @@ INSTALLED_APPS = [
     'rvm',
 
     # Framework
+    'phonenumber_field',
     'rest_framework',
+
 ]
 
 MIDDLEWARE = [
