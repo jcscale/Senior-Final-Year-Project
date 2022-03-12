@@ -22,6 +22,9 @@ class Account(models.Model):
     total_credits_earned = models.DecimalField(
         max_digits=12, decimal_places=2, default=0.00)
 
+    def __str__(self):
+        return str(self.user)
+
 
 class Transaction(models.Model):
     mobile_number = PhoneNumberField()
