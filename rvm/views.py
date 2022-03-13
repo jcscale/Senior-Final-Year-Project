@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
-from .forms import SignupForm
+from .forms import SignupForm, LoginForm
+from django.contrib.auth import login, authenticate
 from .models import User, Account
 
 # Create your views here.
@@ -24,10 +25,32 @@ def register(request):
             Account.objects.create(user=user, mobile_number=mobile_number)
 
             msg = 'User Created'
-            return redirect('api/transaction/')
+            return redirect('login')
 
         else:
             msg = 'Form is not valid'
     else:
         form = SignupForm()
-    return render(request, 'rvm/authentication/register.html', {'form': form, 'msg': msg})
+    return render(request, 'rvm/user/register.html', {'form': form, 'msg': msg})
+
+
+def user_login_view(request):
+    form = LoginForm(request.POST or None)
+    msg = None
+    if request.method == 'POST':
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None and user.is_user:
+                login(request, user)
+                return redirect('user_home')
+            else:
+                msg = 'Account does not exist'
+
+    context = {
+        'form': form,
+        'msg': msg
+    }
+
+    return render(request, 'rvm/user/login.html', context)

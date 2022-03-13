@@ -23,9 +23,7 @@ class SignupForm(UserCreationForm):
     )
 
     mobile_number = PhoneNumberField(
-        widget=PhoneNumberPrefixWidget(initial="PH", attrs={
-            'class': 'form-control'
-        })
+        widget=PhoneNumberPrefixWidget(initial="PH")
     )
 
     username = forms.CharField(
@@ -55,3 +53,21 @@ class SignupForm(UserCreationForm):
         model = User
         fields = ('first_name', 'last_name', 'mobile_number',
                   'username', 'password1', 'password2')
+
+
+class LoginForm(forms.Form):
+    username = forms.CharField(
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control'
+            }
+        )
+    )
+
+    password = forms.CharField(
+        widget=forms.PasswordInput(
+            attrs={
+                "class": "form-control"
+            }
+        )
+    )
