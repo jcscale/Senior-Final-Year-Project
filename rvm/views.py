@@ -54,3 +54,7 @@ def user_login_view(request):
     }
 
     return render(request, 'rvm/user/login.html', context)
+
+
+def user_home(request):
+    return render(request, 'rvm/user/home.html')
