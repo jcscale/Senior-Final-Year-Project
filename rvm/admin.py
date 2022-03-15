@@ -1,7 +1,7 @@
 from django.contrib import admin
-from .models import Transaction, Account
+from .models import Deposit, Account
 
 # Register your models here.
 
-admin.site.register(Transaction)
+admin.site.register(Deposit)
 admin.site.register(Account)

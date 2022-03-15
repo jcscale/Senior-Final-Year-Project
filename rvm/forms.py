@@ -71,3 +71,14 @@ class LoginForm(forms.Form):
             }
         )
     )
+
+
+class PinForm(forms.Form):
+    pin_number = forms.CharField(
+        max_length=4,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control"
+            }
+        )
+    )

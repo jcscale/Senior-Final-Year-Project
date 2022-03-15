@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     # Framework
     'phonenumber_field',
     'rest_framework',
+    'formtools'
 
 ]
 
