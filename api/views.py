@@ -1,10 +1,11 @@
+import decimal
 from os import stat
 from django.http.response import Http404
 from django.shortcuts import render
-from rvm.models import Deposit, Account
-from .serializers import DepositSerializer, AccountSerializer
+from rvm.models import Deposit, Account, Withdraw
+from .serializers import DepositSerializer, AccountSerializer, WithdrawSerializer
 from rest_framework.views import APIView
-from rest_framework import mixins, generics, status
+from rest_framework import mixins, generics, serializers, status
 from rest_framework.response import Response
 
 # Create your views here.
@@ -44,6 +45,45 @@ class AccountDetail(APIView):
         account = self.get_object(slug)
         serializer = AccountSerializer(account, data=request.data)
         print(request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DepositListView(APIView):
+    def get(self, request, format=None):
+        deposit = Deposit.objects.all()
+        serializer = DepositSerializer(deposit, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, format=None):
+        serializer = DepositSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+
+            mobile = Account.objects.filter(
+                mobile_number=serializer.data['mobile_number']).exists()
+            if mobile == True:
+                user = Account.objects.get(
+                    mobile_number=serializer.data['mobile_number'])
+                print(user)
+                Account.objects.filter(user=user.user).update(previous_number_of_bottles=serializer.data['number_of_bottles'], previous_credits_earned=serializer.data['credits_earned'], total_number_of_bottles=int(
+                    user.total_number_of_bottles)+int(serializer.data['number_of_bottles']), total_credits_earned=decimal.Decimal(user.total_credits_earned)+decimal.Decimal(serializer.data['credits_earned']))
+            else:
+                pass
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class WithdrawView(APIView):
+    def get(self, request, format=None):
+        withdraw = Withdraw.objects.all()
+        serializer = WithdrawSerializer(withdraw, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, format=None):
+        serializer = WithdrawSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
