@@ -85,6 +85,16 @@ class WithdrawView(APIView):
     def post(self, request, format=None):
         serializer = WithdrawSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            user = Account.objects.get(
+                mobile_number=serializer.validated_data['mobile_number'], pin_number=serializer.validated_data['pin_number'])
+            if serializer.validated_data['amount'] <= decimal.Decimal(user.total_credits_earned):
+                withdraw = decimal.Decimal(
+                    user.total_credits_earned) - serializer.validated_data['amount']
+                Account.objects.filter(user=user.user).update(
+                    total_credits_earned=withdraw)
+                # print(user.total_credits_earned)
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response({"Failed": "Insufficient balance"}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
