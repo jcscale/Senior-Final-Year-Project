@@ -5,8 +5,8 @@ from rvm.models import Deposit, Account, Withdraw
 class AccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
-        fields = ['mobile_number', 'previous_credits_earned',
-                  'previous_number_of_bottles', 'slug']
+        fields = ['mobile_number', 'total_credits_earned',
+                  'total_number_of_bottles', 'slug']
 
 
 class DepositSerializer(serializers.ModelSerializer):
