@@ -1,7 +1,7 @@
 import requests
 from requests.api import get
 
-endpoint = "http://127.0.0.1:8000/api/transaction"
+endpoint = "http://127.0.0.1:8000/api/deposit"
 
 data = {
     'mobile_number': "+639552903236",

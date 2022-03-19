@@ -41,14 +41,14 @@ class AccountDetail(APIView):
         serializer = AccountSerializer(account)
         return Response(serializer.data)
 
-    def post(self, request, slug, format=None):
-        account = self.get_object(slug)
-        serializer = AccountSerializer(account, data=request.data)
-        print(request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    # def post(self, request, slug, format=None):
+    #     account = self.get_object(slug)
+    #     serializer = AccountSerializer(account, data=request.data)
+    #     print(request.data)
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class DepositListView(APIView):
