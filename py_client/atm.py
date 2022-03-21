@@ -51,11 +51,15 @@ if accountGetResponse.status_code == 200:
                 "amount": amount
             }
             get_response = requests.post(withdrawEndpoint, json=data)
-            withdraw = get_response.json()
-            print(f"You withdrawn {withdraw['amount']} credits")
-            withdrawDone = False
-            print("Thank you...")
-            "Thank You"
+            if get_response.status_code == 201:
+                withdraw = get_response.json()
+                print(f"You withdrawn {withdraw['amount']} credits")
+                withdrawDone = False
+                print("Thank you...")
+            elif get_response.status_code == 400:
+                # error = get_response.json()
+                # print(error['Failed'])
+                print("Insufficient balance")
         elif select == 4:
             logout = False
             print("Thank you...")

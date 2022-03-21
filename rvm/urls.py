@@ -9,6 +9,7 @@ urlpatterns = [
     path('', views.user_login_view, name='login'),
     path('home', views.user_home, name='user_home'),
 
-    path('register2/', views.RegisterWizard.as_view([SignupForm, PinForm])),
+    path('register2/',
+         views.RegisterWizard.as_view([SignupForm, PinForm]), name='register2'),
     path('done', views.done, name='done')
 ]

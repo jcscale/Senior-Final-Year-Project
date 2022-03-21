@@ -19,4 +19,4 @@ class DepositSerializer(serializers.ModelSerializer):
 class WithdrawSerializer(serializers.ModelSerializer):
     class Meta:
         model = Withdraw
-        fields = ['mobile_number', 'pin_number', 'amount']
+        fields = ['mobile_number', 'pin_number', 'amount', 'date']
