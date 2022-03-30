@@ -5,6 +5,12 @@ from phonenumber_field.formfields import PhoneNumberField
 from phonenumber_field.widgets import PhoneNumberPrefixWidget
 
 
+class CustomUserCreationForm(UserCreationForm):
+    class Meta:
+        model = User
+        fields = '__all__'
+
+
 class SignupForm(UserCreationForm):
     first_name = forms.CharField(
         widget=forms.TextInput(

@@ -8,6 +8,31 @@ from formtools.wizard.views import SessionWizardView
 
 
 ##### USER #####
+def admin_login_view(request):
+    form = LoginForm(request.POST or None)
+    msg = None
+    if request.method == 'POST':
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None and user.is_admin:
+                login(request, user)
+                return redirect('adminpage_home')
+            else:
+                msg = 'Account does not exist'
+    context = {
+        'form': form,
+        'msg': msg
+    }
+    return render(request, 'rvm/adminpage/login.html', context)
+
+
+def adminpage_home(request):
+    return render(request, 'rvm/adminpage/home.html')
+
+
+##### USER #####
 def register(request):
     msg = None
     if request.method == "POST":

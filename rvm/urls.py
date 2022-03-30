@@ -4,6 +4,10 @@ from .forms import SignupForm, PinForm
 
 
 urlpatterns = [
+    ##### ADMIN #####
+    path('adminpage/', views.admin_login_view, name='adminpage'),
+    path('adminpage_home/', views.adminpage_home, name='adminpage_home'),
+
     ##### USER #####
     path('register/', views.register, name='register'),
     path('', views.user_login_view, name='login'),
