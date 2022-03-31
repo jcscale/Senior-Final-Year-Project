@@ -4,4 +4,172 @@
 
     {{request.user.username}}
 
+    {% for date in qs %}
+        {{date.date}} - {{date.bottles}} bottles - {{date.credits}} credits
+        <hr>
+    {% endfor %}
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 mx-auto mt-5">
+                {% comment %} <h1 id="app">{{text}}</h1> {% endcomment %}
+                <canvas id="myChart" width="200" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
 {% endblock contents %}
+
+{% block scripts %}
+
+<script>
+    const ctx = document.getElementById('myChart').getContext('2d');
+
+    var graphData = {
+        type: 'bar',
+        data: {
+            labels: [{% for date in qs %}"{{date.date}}",{%endfor%}],
+            datasets: [{
+                label: 'Daily Bottle Records',
+                data: [{% for bottle in qs %}"{{bottle.bottles}}",{%endfor%}],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                ],
+                borderWidth: 1
+            },
+            {
+                label: 'Daily Credit Records',
+                data: [{% for credit in qs %}"{{credit.credits}}",{%endfor%}],
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.2)',
+                ],
+                borderColor: [
+                    'rgba(54, 162, 235, 1)',
+                ],
+                borderWidth: 1
+            }
+            ]
+        },
+        options: {
+            // scales: {
+            //     y: {
+            //         beginAtZero: true
+            //     }
+            // }
+           
+        }
+    }
+
+    const myChart = new Chart(ctx, graphData);
+
+    var eventSource = new EventSource("{% url 'stream' %}")
+
+    eventSource.onopen = function(){
+        console.log('yay its open');
+    }
+
+    eventSource.onmessage = function(e){
+        console.log(e)
+        var final_data = JSON.parse(e.data)
+        console.log(final_data[0])
+
+        
+        
+        //console.log(format('2022-03-30'))
+        
+        convertedDate = format(final_data[0].date)
+        bottles = final_data[0].bottles
+        credits = final_data[0].credits
+        console.log(bottles, credits)
+        new_date = convertedDate
+        console.log(convertedDate)
+
+        if(graphData.data.labels.includes(convertedDate)){
+            console.log("yes")
+            a=graphData.data.labels.indexOf(convertedDate)
+            if (a !== -1) {
+                c = graphData.data.labels[a] = convertedDate;
+            }
+            //graphData.data.labels.replace(convertedDate);
+            console.log("c", c)
+            console.log(graphData.data.labels)
+            graphData.data.labels[a]=convertedDate
+            console.log(graphData.data.labels)
+            graphData.data.datasets.forEach((dataset) => {
+                console.log(dataset)
+                if(dataset.label == 'Daily Bottle Records'){
+                    dataset.data[a]=bottles;
+                }
+                else if(dataset.label == 'Daily Credit Records'){
+                    dataset.data[a]=credits;
+                }
+            
+            });
+            myChart.update();
+
+            //console.log(a)
+            //console.log(graphData.data.labels[a]=convertedDate)
+            //b = graphData.data.labels[a]=convertedDate
+            //graphData.data.labels.splice(a,a,b);
+        }
+        else{
+            console.log("no")
+        }
+
+        
+       
+        
+        {% comment %} console.log(graphData.data.labels)
+        graphData.data.labels = [...new Set(graphData.data.labels)];
+        graphData.data.labels
+        console.log(graphData.data.labels)
+        graphData.data.datasets.forEach((dataset) => {
+            console.log(dataset)
+            if(dataset.label == 'Daily Bottle Records'){
+                dataset.data.push(final_data[0].bottles);
+            }
+            else if(dataset.label == 'Daily Credit Records'){
+                dataset.data.push(final_data[0].credits);
+            }
+            
+        });
+        myChart.update(); {% endcomment %}
+        
+    }
+
+    eventSource.onerror = function(e) {
+        console.log(`error ${e}`);
+    }
+
+    function format(input){
+        var date = new Date(input.replace(/ /g,'T'));
+        return [
+        "January", "February", "March", "April", "May", "June", "July",
+        "August", "September", "October", "November", "December"][date.getMonth()] + ' ' + date.getDate() + ', ' + date.getFullYear();
+    }
+
+    function dateSort(a,b){
+        // Turn your strings into dates, and then subtract them
+        // to get a value that is either negative, positive, or zero.
+        return new Date(a.date) - new Date(b.date);
+      };
+
+    function adddata(input){
+        graphData.data.datasets[0].data[5] = 60;
+        graphData.data.labels[5] = "Newly Added";
+        graphData.update();
+    }
+
+    function editData(inputDate, inputBottles, inputCredits){
+        a=graphData.data.labels.indexOf(inputDate)
+        graphData.data.datasets[0].data[a] = 60;
+        graphData.data.labels[5] = "Edited";
+        graphData.update();
+    }
+    
+</script>
+
+{% endblock scripts %}

@@ -1,8 +1,13 @@
 from django.shortcuts import render, redirect
 from .forms import SignupForm, LoginForm, PinForm
 from django.contrib.auth import login, authenticate
-from .models import User, Account
+from .models import Deposit, User, Account
 from formtools.wizard.views import SessionWizardView
+from django.db.models import Sum
+import time
+import json
+from django.core.serializers.json import DjangoJSONEncoder
+from django.http import StreamingHttpResponse
 
 # Create your views here.
 
@@ -29,7 +34,42 @@ def admin_login_view(request):
 
 
 def adminpage_home(request):
-    return render(request, 'rvm/adminpage/home.html')
+    bottles = Deposit.objects.aggregate(Sum('number_of_bottles'))[
+        'number_of_bottles__sum']
+    credits = Deposit.objects.aggregate(Sum('credits_earned'))[
+        'credits_earned__sum']
+    deposit_records = Deposit.objects.filter().values('date').order_by(
+        'date').annotate(bottles=Sum('number_of_bottles'), credits=Sum('credits_earned'))
+    records = Deposit.objects.all()
+
+    print(bottles)
+    print(credits)
+    print(deposit_records)
+    context = {
+        'qs': deposit_records,
+        'qs2': records
+    }
+    return render(request, 'rvm/adminpage/home2.html', context)
+
+
+def event_stream():
+    initial_data = ""
+
+    while True:
+        deposit_records = Deposit.objects.filter().values('date').order_by(
+            '-id').annotate(bottles=Sum('number_of_bottles'), credits=Sum('credits_earned'))
+        data = json.dumps(list(deposit_records), cls=DjangoJSONEncoder)
+        print(data)
+        if not initial_data == data:
+            yield "\ndata: {}\n\n".format(data)
+            initial_data = data
+        time.sleep(1)
+
+
+def stream(request):
+    response = StreamingHttpResponse(event_stream())
+    response['Content-Type'] = 'text/event-stream'
+    return response
 
 
 ##### USER #####
