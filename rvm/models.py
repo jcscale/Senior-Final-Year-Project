@@ -33,7 +33,7 @@ class Deposit(models.Model):
     credits_earned = models.DecimalField(
         decimal_places=2, max_digits=15, blank=True, null=True)
     number_of_bottles = models.IntegerField(blank=True, null=True)
-<<<<<<< HEAD
+
     date = models.DateTimeField(default=datetime.datetime.now)
 
     class Meta:

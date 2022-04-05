@@ -49,11 +49,7 @@ def adminpage_home(request):
         'qs': deposit_records,
         'qs2': records
     }
-<<<<<<< HEAD
     return render(request, 'rvm/adminpage/home3.html', context)
-=======
-    return render(request, 'rvm/adminpage/home2.html', context)
->>>>>>> d1e7c9bb7800a7b0f5295290a3f4ed21c481bf4a
 
 
 def event_stream():
