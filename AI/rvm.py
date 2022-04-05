@@ -1,3 +1,4 @@
+from tkinter.constants import N, NE, W
 import serial
 import time
 import tkinter as tk
@@ -11,12 +12,31 @@ def quit():
     global running
     running = False
     global root
-    root.destroy()
+
+    # cap.release()
+
+    root.quit()
+    # for widget in frame1.winfo_children():
+    #     widget.destroy()
+
+
+def stop():
+    cap.release()
+    start_button.config(state="normal")
+    stop_button.config(state="disabled")
 
 
 def getSettingValue():
-    res = e1.get()
-    print(res)
+    global res1
+    global res2
+    global res3
+
+    res1 = e1.get()
+    res2 = e2.get()
+    res3 = e3.get()
+
+    print(res1, res2, res3)
+    # return res1, res2, res3
 
 
 def setting():
@@ -55,15 +75,29 @@ def setting():
 
 
 def start():
+
+    # webcam = tk.Toplevel()
+    # webcam.title('Web Camera')
     global last_frame
-    cap = cv2.VideoCapture(0)
+
+    # Arduino
+    # arduino = serial.Serial('COM3', 9600)
+    # time.sleep(2)
+
+    global cap
+
+    vid = e1.get()
+    port = e2.get()
+    rate = e3.get()
+    print(type(vid), type(port), type(rate))
+    cap = cv2.VideoCapture(int(vid))
     whT = 320
     confThreshold = 0.5
     nmsThreshold = 0.1
 
     # LOAD MODEL
     # Coco Names
-    classesFile = "coco2.names"
+    classesFile = "coco.names"
     classNames = []
     with open(classesFile, 'rt') as f:
         classNames = f.read().rstrip('\n').split('\n')
@@ -99,15 +133,33 @@ def start():
             box = bbox[i]
             x, y, w, h = box[0], box[1], box[2], box[3]
             # print(x,y,w,h)
-            cv2.rectangle(img, (x, y), (x+w, y+h), (255, 0, 255), 2)
 
-            cv2.putText(img, f'{classNames[classIds[i]].upper()} {int(confs[i]*100)}%',
-                        (x+10, y+30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 255), 2)
+            if classNames[classIds[i]] == 'bottle':
 
-            # cv2.putText(img, classNames[classId[i][0]-1].upper(), (box[0]+10, box[1]+30),
-            #             cv2.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0), 2)
+                cv2.rectangle(img, (x, y), (x+w, y+h), (0, 225, 0), 2)
 
-            print(classNames[classIds[i]])
+                cv2.putText(img, f'{classNames[classIds[i]].upper()} {int(confs[i]*100)}%',
+                            (x+10, y+30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 225, 0), 2)
+
+                # cv2.putText(img, classNames[classId[i][0]-1].upper(), (box[0]+10, box[1]+30),
+                #             cv2.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0), 2)
+
+                # print(classNames[classIds[i]])
+
+                # arduino.write(b'1')
+
+            elif classNames[classIds[i]] != 'bottle':
+                classNames[classIds[i]] = 'not bottle'
+                cv2.rectangle(img, (x, y), (x+w, y+h), (0, 0, 225), 2)
+
+                cv2.putText(img, f'{classNames[classIds[i]].upper()}',
+                            (x+10, y+30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 225), 2)
+
+                # cv2.putText(img, classNames[classId[i][0]-1].upper(), (box[0]+10, box[1]+30),
+                #             cv2.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0), 2)
+
+                # print(classNames[classIds[i]])
+                # arduino.write(b'2')
 
     while True:
         success, img = cap.read()
@@ -161,22 +213,81 @@ after_id = None
 last_frame = None
 
 
+def raise_frame(frame):
+    frame.tkraise()
+
+
 root = tk.Tk()
 root.protocol("WM_DELETE_WINDOW", closeWindow)
 # root.geometry('300x200')
 root.title("RVM Software")
 
-video_label = tk.Label()
+
+frame1 = tk.LabelFrame(root, text='camera')
+frame2 = tk.LabelFrame(root, text='text')
+
+frame3 = tk.LabelFrame(root, text='buttons')
+frame3.grid(row=1, column=0, sticky='nsew')
+
+for frame in (frame1, frame2):
+    frame.grid(row=0, column=0, sticky='nsew')
+
+# frame2 = tk.LabelFrame(root, text='buttons')
+# frame2.pack(padx=10, pady=20)
+
+
+# tk.Button(frame1, text='Go to frame 2',
+#           command=lambda: raise_frame(frame2)).pack()
+# tk.Label(frame1, text='FRAME 1').pack()
+
+
+# tk.Label(frame2, text='FRAME 2').pack()
+# tk.Button(frame2, text='Go to frame 1',
+#           command=lambda: raise_frame(frame1)).pack()
+
+
+video_label = tk.Label(frame1)
 video_label.pack(expand=True, fill="both")
 
-start_button = tk.Button(root, text="Start", command=start_rec)
-start_button.pack(side='top', ipadx=10, padx=10, pady=15)
+message = tk.Label(
+    frame2, text='Press "Start" button to start object detection ').pack()
 
-stop_button = tk.Button(root, text="Stop", command=quit)
-stop_button.pack(side='top', ipadx=10, padx=10, pady=15)
 
-setting_button = tk.Button(root, text="settings", command=setting)
-setting_button.pack()
+global e1, e2, e3
+videoCapture = tk.Label(frame3, text="Video Capture").pack(
+    side="left", padx=5, pady=5)
+v1 = tk.StringVar(frame3, value=0)
+e1 = tk.Entry(frame3, textvariable=v1)
+e1.pack(side="left", padx=5, pady=5)
+
+serialPort = tk.Label(frame3, text="Port").pack(side="left", padx=5, pady=5)
+v2 = tk.StringVar(frame3, value='COM3')
+e2 = tk.Entry(frame3, textvariable=v2)
+e2.pack(side="left", padx=5, pady=5)
+
+baudRate = tk.Label(frame3, text="Baud Rate").pack(side="left", padx=5, pady=5)
+v3 = tk.StringVar(frame3, value='9600')
+e3 = tk.Entry(frame3, textvariable=v3)
+e3.pack(side="left", padx=5, pady=5)
+
+start_button = tk.Button(frame3, text="Start", command=lambda: [
+                         start_rec(), raise_frame(frame1)])
+start_button.pack(side='left', expand=True, fill="both", padx=5, pady=5)
+
+# restart_button = tk.Button(root, text="Restart", command=start_rec)
+# restart_button.pack(side='left', expand=True, fill="both", padx=5, pady=5)
+
+stop_button = tk.Button(frame3, text="Stop",
+                        command=lambda: [raise_frame(frame2), stop()])
+stop_button.pack(side='left', expand=True, fill="both", padx=5, pady=5)
+
+stop_button.config(state="disabled")
+
+ext_button = tk.Button(frame3, text="Exit", command=quit)
+ext_button.pack(side='left', expand=True, fill="both", padx=5, pady=5)
+
+# setting_button = tk.Button(root, text="settings", command=setting)
+# setting_button.pack(side='left', expand=True, fill="both", padx=5, pady=5)
 
 
 root.mainloop()
