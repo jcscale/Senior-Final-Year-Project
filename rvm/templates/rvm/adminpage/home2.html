@@ -1,7 +1,10 @@
 {% extends 'rvm/base.html' %}
 
 {% block contents %}
+<<<<<<< HEAD
 {% comment %} <meta http-equiv="refresh" content="5"> {% endcomment %}
+=======
+>>>>>>> d1e7c9bb7800a7b0f5295290a3f4ed21c481bf4a
 
     {{request.user.username}}
 
@@ -101,7 +104,14 @@
         console.log(final_data)
         console.log(final_data[0])
         newDate = format(final_data[0].date)
+<<<<<<< HEAD
     
+=======
+        
+
+
+        
+>>>>>>> d1e7c9bb7800a7b0f5295290a3f4ed21c481bf4a
         a=myLineChart.data.labels.indexOf(newDate)
         console.log(a)
 
@@ -114,8 +124,15 @@
         }
         else{
             addData(final_data[0])
+<<<<<<< HEAD
             
         }
+=======
+            //console.log(addData(final_data[0]))
+        }
+
+        
+>>>>>>> d1e7c9bb7800a7b0f5295290a3f4ed21c481bf4a
     }
 
     eventSource.onerror = function(e) {
@@ -123,7 +140,18 @@
     }
 
     function addData(input){
+<<<<<<< HEAD
         convertedDate = format(input.date)
+=======
+
+
+        
+        convertedDate = format(input.date)
+
+
+        
+            
+>>>>>>> d1e7c9bb7800a7b0f5295290a3f4ed21c481bf4a
         myLineChart.data.labels.push(convertedDate)
         myLineChart.data.datasets.forEach((dataset) => {
             console.log(dataset)
@@ -139,20 +167,33 @@
     }
 
     function editData(input){
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> d1e7c9bb7800a7b0f5295290a3f4ed21c481bf4a
         a=myLineChart.data.labels.indexOf(format(input.date))
         console.log(a)
 
             if (a !== -1) {
                 //c = myLineChart.data.labels[a] = input.date;
+<<<<<<< HEAD
                 a = parseInt(myLineChart.data.datasets[0].data[a]) + parseInt(input.bottles);
                 b = parseFloat( myLineChart.data.datasets[1].data[a]) + parseFloat(input.credits);
                 myLineChart.data.datasets[0].data[a] = a
                 myLineChart.data.datasets[1].data[a] = b
+=======
+                myLineChart.data.datasets[0].data[a]=parseInt(myLineChart.data.datasets[0].data[a]) + parseInt(input.bottles);
+                myLineChart.data.datasets[1].data[a]=parseFloat( myLineChart.data.datasets[1].data[a]) + parseFloat(input.credits);
+>>>>>>> d1e7c9bb7800a7b0f5295290a3f4ed21c481bf4a
                 console.log("bottles",parseInt(myLineChart.data.datasets[0].data[a]))
                 console.log("credits",typeof(myLineChart.data.datasets[1].data[a]))
                 myLineChart.update();
             }
+<<<<<<< HEAD
             
+=======
+>>>>>>> d1e7c9bb7800a7b0f5295290a3f4ed21c481bf4a
             //myLineChart.update();
         //myLineChart.data.datasets[0].data[5] = 60;
         //myLineChart.data.labels[5] = "Newly Added";
@@ -166,10 +207,13 @@
         "August", "September", "October", "November", "December"][date.getMonth()] + ' ' + date.getDate() + ', ' + date.getFullYear();
     }
 
+<<<<<<< HEAD
     function myInterval(a){
         setInterval(a,1000)
     }
 
+=======
+>>>>>>> d1e7c9bb7800a7b0f5295290a3f4ed21c481bf4a
 
 </script>
 
