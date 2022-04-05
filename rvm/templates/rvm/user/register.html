@@ -1,0 +1,69 @@
+{% extends 'rvm/base.html' %}
+
+{% block contents %}
+
+<div class="wrapper">
+
+     <div class="content">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-md-6 contents border" id="registration-card">
+            <div class="row justify-content-center">
+              <div class="col-md-12">
+                <div class="form-block">
+                    <div class="mb-4">
+                        <h1>User Registration page</h1>
+                  </div>
+                    <span class="mb-0 text-muted">
+                  {% if msg %}
+                      {{ msg | safe }}
+                  {% else %}
+                      {% comment %} Login page {% endcomment %}
+                      Registration Form
+                  {% endif %}
+                </span>
+                  <form  method="post">
+                      {% csrf_token %}
+                    <div class="form-group first">
+                      <label for="username">First Name</label>
+                        {{ form.first_name }}
+                    </div>
+                    <div class="form-group first">
+                      <label for="username">Last Name</label>
+                        {{ form.last_name }}
+                    </div>
+                    <div class="form-group first">
+                        <label for="mobile number">Mobile Number</label>
+                          {{ form.mobile_number }}
+                      </div>
+                    <div class="form-group first">
+                      <label for="username">Username</label>
+                        {{ form.username }}
+                    </div>
+                    <div class="form-group last mb-4">
+                      <label for="password">Password</label>
+                        {{ form.password1 }}
+                    </div>
+                    <div class="form-group last mb-4">
+                      <label for="password">Confirm Password</label>
+                        {{ form.password2 }}
+                    </div>
+
+                      <span class="text-error">{{ form.errors }}</span>
+                    <input type="submit"  value="Register" class="btn btn-pill text-white btn-block btn-primary">
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+  
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+  
+
+{% endblock contents %}

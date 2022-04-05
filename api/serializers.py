@@ -1,8 +1,22 @@
 from rest_framework import serializers
-from rvm.models import Transaction
+from rvm.models import Deposit, Account, Withdraw
 
 
-class TransactionSerializer(serializers.ModelSerializer):
+class AccountSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Transaction
-        fields = ['mobile_number', 'credits_earned', 'number_of_bottles']
+        model = Account
+        fields = ['mobile_number', 'total_credits_earned',
+                  'total_number_of_bottles', 'slug']
+
+
+class DepositSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Deposit
+        fields = ['mobile_number', 'credits_earned',
+                  'number_of_bottles', 'date']
+
+
+class WithdrawSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Withdraw
+        fields = ['mobile_number', 'pin_number', 'amount', 'date']

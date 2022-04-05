@@ -1,0 +1,201 @@
+{% extends 'rvm/base.html' %}
+
+{% block contents %}
+{% comment %} <meta http-equiv="refresh" content="5"> {% endcomment %}
+
+    {{request.user.username}}
+
+    {% for date in qs %}
+        {{date.date}} - {{date.bottles}} bottles - {{date.credits}} credits
+        <hr>
+    {% endfor %}
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 mx-auto mt-5">
+                {% comment %} <h1 id="app">{{text}}</h1> {% endcomment %}
+                <div id="chartReport">
+                    <canvas id="myChart" width="400" height="250"></canvas>
+                </div>
+                {% comment %} <input type="button" value="Add Data" onclick="adddata()"> {% endcomment %}
+
+            </div>
+        </div>
+    </div>
+
+{% endblock contents %}
+
+{% block scripts %}
+
+<script>
+    //bb = [{% for date in qs %}"{{date.date}}",{%endfor%}]
+    //aa=[...new Set(bb)]
+    //dateLabel = [{% for date in qs %}"{{date.date}}",{%endfor%}]
+    var canvas = document.getElementById('myChart');
+    var data = {
+        labels:[{% for date in qs %}"{{date.date}}",{%endfor%}],
+        datasets: [
+            {
+                label: 'Daily Bottle Records',
+                fill: false,
+                lineTension: 0.1,
+                backgroundColor: "rgba(75,192,192,0.4)",
+                borderColor: "rgba(75,192,192,1)",
+                borderCapStyle: 'butt',
+                borderDash: [],
+                borderDashOffset: 0.0,
+                borderJoinStyle: 'miter',
+                pointBorderColor: "rgba(75,192,192,1)",
+                pointBackgroundColor: "#fff",
+                pointBorderWidth: 1,
+                pointHoverRadius: 5,
+                pointHoverBackgroundColor: "rgba(75,192,192,1)",
+                pointHoverBorderColor: "rgba(220,220,220,1)",
+                pointHoverBorderWidth: 2,
+                pointRadius: 5,
+                pointHitRadius: 10,
+                data: [{% for bottle in qs %}"{{bottle.bottles}}",{%endfor%}],
+            },
+            {
+                label: 'Daily Credit Records',
+                fill: false,
+                lineTension: 0.1,
+                backgroundColor: "rgba(75,192,192,0.4)",
+                borderColor: "rgba(75,192,192,1)",
+                borderCapStyle: 'butt',
+                borderDash: [],
+                borderDashOffset: 0.0,
+                borderJoinStyle: 'miter',
+                pointBorderColor: "rgba(75,192,192,1)",
+                pointBackgroundColor: "#fff",
+                pointBorderWidth: 1,
+                pointHoverRadius: 5,
+                pointHoverBackgroundColor: "rgba(75,192,192,1)",
+                pointHoverBorderColor: "rgba(220,220,220,1)",
+                pointHoverBorderWidth: 2,
+                pointRadius: 5,
+                pointHitRadius: 10,
+                data: [{% for credit in qs %}"{{credit.credits}}",{%endfor%}],
+            }
+        ]
+    };
+    
+    var option = {
+        showLines: true
+    };
+    var myLineChart = new Chart(canvas,{
+        type: 'bar',
+        data:data,
+      options:option
+    });
+
+    //////////////////////////////////////////////////////////////
+
+    var eventSource = new EventSource("{% url 'stream' %}")
+
+    eventSource.onopen = function(){
+        console.log('yay its open');
+    }
+
+    eventSource.onmessage = function(e){
+        console.log(e)
+        var final_data = JSON.parse(e.data)
+        console.log(final_data)
+        console.log(final_data[0])
+        newDate = format(final_data[0].date)
+    
+        a=myLineChart.data.labels.indexOf(newDate)
+        console.log(a)
+
+        addData(final_data[0])
+
+        
+        
+        
+
+
+        console.log(newDate)
+        {% comment %} if (myLineChart.data.labels.includes(newDate))
+        {   
+        
+            console.log("yes")
+            editData(final_data[0])
+        }
+        else{
+            addData(final_data[0])
+            
+        } {% endcomment %}
+    }
+
+    eventSource.onerror = function(e) {
+        console.log(`error ${e}`);
+    }
+
+    function updateDate(input){
+        convertedDate = format(input.date)
+        myLineChart.data.labels.push(convertedDate)
+        myLineChart.data.datasets.forEach((dataset) => {
+            console.log(dataset)
+            if(dataset.label == 'Daily Bottle Records'){
+                dataset.data.push(input.bottles);
+            }
+            else if(dataset.label == 'Daily Credit Records'){
+                dataset.data.push(input.credits);
+            }
+        
+        });
+        myLineChart.update();
+    }
+
+    function addData(input){
+        convertedDate = format(input.date)
+        myLineChart.data.labels.push(convertedDate)
+        myLineChart.data.datasets.forEach((dataset) => {
+            console.log(dataset)
+            if(dataset.label == 'Daily Bottle Records'){
+                dataset.data.push(input.bottles);
+            }
+            else if(dataset.label == 'Daily Credit Records'){
+                dataset.data.push(input.credits);
+            }
+        
+        });
+        myLineChart.update();
+    }
+
+    function editData(input){
+        a=myLineChart.data.labels.indexOf(format(input.date))
+        console.log(a)
+
+            if (a !== -1) {
+                //c = myLineChart.data.labels[a] = input.date;
+                a = parseInt(myLineChart.data.datasets[0].data[a]) + parseInt(input.bottles);
+                b = parseFloat( myLineChart.data.datasets[1].data[a]) + parseFloat(input.credits);
+                myLineChart.data.datasets[0].data[a] = a
+                myLineChart.data.datasets[1].data[a] = b
+                console.log("bottles",parseInt(myLineChart.data.datasets[0].data[a]))
+                console.log("credits",typeof(myLineChart.data.datasets[1].data[a]))
+                myLineChart.update();
+            }
+            
+            //myLineChart.update();
+        //myLineChart.data.datasets[0].data[5] = 60;
+        //myLineChart.data.labels[5] = "Newly Added";
+        //myLineChart.update();
+    }
+
+    function format(input){
+        var date = new Date(input.replace(/ /g,'T'));
+        return [
+        "January", "February", "March", "April", "May", "June", "July",
+        "August", "September", "October", "November", "December"][date.getMonth()] + ' ' + date.getDate() + ', ' + date.getFullYear();
+    }
+
+    function myInterval(a){
+        setInterval(a,1000)
+    }
+
+
+</script>
+
+{% endblock scripts %}

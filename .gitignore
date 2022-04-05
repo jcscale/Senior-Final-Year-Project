@@ -4,3 +4,4 @@
 __pycache__
 db.sqlite3
 media
+AI/yolov3-320.weights
