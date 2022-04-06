@@ -2,10 +2,12 @@ from tkinter.constants import N, NE, W
 import serial
 import time
 import tkinter as tk
+from tkinter import Label, ttk
 from PIL import Image, ImageTk
 import threading
 import numpy as np
 import cv2
+import psutil
 
 
 def quit():
@@ -21,9 +23,25 @@ def quit():
 
 
 def stop():
-    cap.release()
-    start_button.config(state="normal")
-    stop_button.config(state="disabled")
+    try:
+        cap.release()
+        cv2.destroyAllWindows()
+        start_button.config(state="normal")
+        stop_button.config(state="disabled")
+        e1.config(state="normal")
+        e2.config(state="normal")
+        e3.config(state="normal")
+        e4.config(state="normal")
+
+    except NameError:
+        # cap.release()
+        # cv2.destroyAllWindows()
+        start_button.config(state="normal")
+        stop_button.config(state="disabled")
+        e1.config(state="normal")
+        e2.config(state="normal")
+        e3.config(state="normal")
+        e4.config(state="normal")
 
 
 def getSettingValue():
@@ -87,13 +105,33 @@ def start():
     global cap
 
     vid = e1.get()
+
     port = e2.get()
     rate = e3.get()
+
+    algo = e4.get()
+    if algo == "yolov3-320":
+        cfg = "yolov3-320.cfg"
+        weights = "yolov3-320.weights"
+    else:
+        cfg = "yolov3-tiny.cfg"
+        weights = "yolov3-tiny.weights"
+    print(cfg)
+    print(weights)
+
+    # Arduino
+    # arduino = serial.Serial(port, int(rate))
+    # time.sleep(2)
+
     print(type(vid), type(port), type(rate))
+    print(vid, port, rate)
+
     cap = cv2.VideoCapture(int(vid))
     whT = 320
     confThreshold = 0.5
     nmsThreshold = 0.1
+
+    prev_frame_time = 0
 
     # LOAD MODEL
     # Coco Names
@@ -101,10 +139,10 @@ def start():
     classNames = []
     with open(classesFile, 'rt') as f:
         classNames = f.read().rstrip('\n').split('\n')
-    print(classNames)
+    # print(classNames)
     # Model Files
-    modelConfiguration = "yolov3-320.cfg"
-    modelWeights = "yolov3-320.weights"
+    modelConfiguration = cfg
+    modelWeights = weights
     net = cv2.dnn.readNetFromDarknet(modelConfiguration, modelWeights)
     net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
     net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
@@ -126,7 +164,8 @@ def start():
                     classIds.append(classId)
                     confs.append(float(confidence))
 
-        indices = cv2.dnn.NMSBoxes(bbox, confs, confThreshold, nmsThreshold)
+        indices = cv2.dnn.NMSBoxes(
+            bbox, confs, confThreshold, nmsThreshold)
 
         for i in indices:
             i = i[0]
@@ -163,6 +202,21 @@ def start():
 
     while True:
         success, img = cap.read()
+
+        gray = img
+        # resizing the frame size according to our need
+        gray = cv2.resize(gray, (500, 300))
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        # time when we finish processing for this frame
+        new_frame_time = time.time()
+
+        fps = 1/(new_frame_time-prev_frame_time)
+        prev_frame_time = new_frame_time
+        fps = int(fps)
+        message4.config(text=fps)
+        message5.config(text=f"{psutil.cpu_percent()} %")
+        # cv2.putText(gray, fps, (7, 70), font, 3, (100, 255, 0), 3, cv2.LINE_AA)
+
         blob = cv2.dnn.blobFromImage(
             img, 1 / 255, (whT, whT), [0, 0, 0], 1, crop=False)
         net.setInput(blob)
@@ -179,6 +233,7 @@ def start():
             break
 
     cap.release()
+    cv2.destroyAllWindows()
 
 
 def update_frame():
@@ -201,6 +256,10 @@ def start_rec():
 
     start_button.config(state="disabled")
     stop_button.config(state="normal")
+    e1.config(state="disabled")
+    e2.config(state="disabled")
+    e3.config(state="disabled")
+    e4.config(state="disabled")
 
 
 def closeWindow():
@@ -217,58 +276,103 @@ def raise_frame(frame):
     frame.tkraise()
 
 
+###################### MAIN ######################
 root = tk.Tk()
 root.protocol("WM_DELETE_WINDOW", closeWindow)
 # root.geometry('300x200')
 root.title("RVM Software")
 
 
-frame1 = tk.LabelFrame(root, text='camera')
-frame2 = tk.LabelFrame(root, text='text')
-
-frame3 = tk.LabelFrame(root, text='buttons')
-frame3.grid(row=1, column=0, sticky='nsew')
+frame1 = tk.LabelFrame(root, text='Camera')
+frame2 = tk.LabelFrame(root, text='Message')
 
 for frame in (frame1, frame2):
     frame.grid(row=0, column=0, sticky='nsew')
 
-# frame2 = tk.LabelFrame(root, text='buttons')
-# frame2.pack(padx=10, pady=20)
+frame3 = tk.LabelFrame(root, text='Configurations')
+frame3.grid(row=2, column=0, sticky='nsew')
 
 
-# tk.Button(frame1, text='Go to frame 2',
-#           command=lambda: raise_frame(frame2)).pack()
-# tk.Label(frame1, text='FRAME 1').pack()
+###################### PERFORMANCE  ######################
 
-
-# tk.Label(frame2, text='FRAME 2').pack()
-# tk.Button(frame2, text='Go to frame 1',
-#           command=lambda: raise_frame(frame1)).pack()
+frame4 = tk.LabelFrame(root, text='Performance')
+frame4.grid(row=1, column=0, sticky='nsew')
+fpsLabel = tk.Label(frame4, text="FPS:").pack(side="left", padx=5, pady=5)
+message4 = tk.Label(frame4, text=0)
+message4.pack(side="left", padx=5, pady=5)
+cpuLabel = Label(frame4, text="CPU:").pack(side="left", padx=5, pady=5)
+message5 = Label(frame4, text=f"{psutil.cpu_percent()} %")
+message5.pack(side="left", padx=5, pady=5)
 
 
 video_label = tk.Label(frame1)
 video_label.pack(expand=True, fill="both")
 
 message = tk.Label(
-    frame2, text='Press "Start" button to start object detection ').pack()
+    frame2, text='Make sure that this computer is connected to the Arduino before pressing "Start" button').pack()
+
+message2 = tk.Label(frame1, text="Plastic Bottle Detection")
+message2.pack()
 
 
 global e1, e2, e3
+
+###################### VIDEO CAPTURE ######################
+
+
 videoCapture = tk.Label(frame3, text="Video Capture").pack(
     side="left", padx=5, pady=5)
-v1 = tk.StringVar(frame3, value=0)
-e1 = tk.Entry(frame3, textvariable=v1)
+v1 = tk.IntVar(frame3, value=0)
+# e1 = tk.Entry(frame3, textvariable=v1)
+# e1.pack(side="left", padx=5, pady=5)
+
+e1 = ttk.Combobox(frame3, width=27, textvariable=v1, state="readonly")
+e1['values'] = (
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+)
 e1.pack(side="left", padx=5, pady=5)
+e1.current(0)
+
+
+###################### SERIAL PORT ######################
+
 
 serialPort = tk.Label(frame3, text="Port").pack(side="left", padx=5, pady=5)
 v2 = tk.StringVar(frame3, value='COM3')
 e2 = tk.Entry(frame3, textvariable=v2)
 e2.pack(side="left", padx=5, pady=5)
 
+
+###################### BAUD RATE ######################
+
 baudRate = tk.Label(frame3, text="Baud Rate").pack(side="left", padx=5, pady=5)
 v3 = tk.StringVar(frame3, value='9600')
-e3 = tk.Entry(frame3, textvariable=v3)
+# e3 = tk.Entry(frame3, textvariable=v3)
+# e3.pack(side="left", padx=5, pady=5)
+
+e3 = ttk.Combobox(frame3, width=27, textvariable=v3, state="readonly")
+e3['values'] = (
+    300, 600, 1200, 2400, 4800, 9600, 14400, 19200, 28800, 31250, 38400, 57600, 115200
+)
 e3.pack(side="left", padx=5, pady=5)
+e3.current(5)
+
+
+###################### ALGORITHM ######################
+
+algorithm = tk.Label(frame3, text="Algorithm").pack(
+    side="left", padx=5, pady=5)
+v4 = tk.StringVar(frame3, value="yolov3-320")
+e4 = ttk.Combobox(frame3, width=27, textvariable=v4, state="readonly")
+e4['values'] = (
+    "yolov3-320", "yolov3-tiny"
+)
+e4.pack(side="left", padx=5, pady=5)
+e4.current(0)
+
+
+###################### BUTTONS ######################
+
 
 start_button = tk.Button(frame3, text="Start", command=lambda: [
                          start_rec(), raise_frame(frame1)])
