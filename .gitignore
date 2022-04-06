@@ -6,4 +6,6 @@ db.sqlite3
 media
 AI/yolov3-320.weights
 AI/yolov3-320.cfg
+AI/yolov3-tiny.weights
+AI/yolov3-tiny.cfg
 AI/coco.names
