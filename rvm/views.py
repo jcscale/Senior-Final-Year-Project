@@ -9,6 +9,10 @@ import json
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import StreamingHttpResponse
 
+from itertools import groupby
+from operator import attrgetter
+from django.db.models.functions import TruncDate
+
 # Create your views here.
 
 
@@ -40,7 +44,11 @@ def adminpage_home(request):
         'credits_earned__sum']
     deposit_records = Deposit.objects.filter().values('date').order_by(
         'date').annotate(bottles=Sum('number_of_bottles'), credits=Sum('credits_earned'))
-    records = Deposit.objects.all()
+    records = Deposit.objects.all().order_by("date")
+    # records = Deposit.objects.annotate(
+    #     created_at_date=TruncDate('date'),).order_by("date")
+    # groupedset = groupby(records, attrgetter('created_at_date'))
+    print(records)
 
     print(bottles)
     print(credits)

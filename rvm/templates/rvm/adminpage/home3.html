@@ -5,8 +5,8 @@
 
     {{request.user.username}}
 
-    {% for date in qs %}
-        {{date.date}} - {{date.bottles}} bottles - {{date.credits}} credits
+    {% for date in qs2 %}
+        {{date.date}} - {{date.number_of_bottles}} bottles - {{date.credits_earned}} credits
         <hr>
     {% endfor %}
 
@@ -30,10 +30,11 @@
 <script>
     //bb = [{% for date in qs %}"{{date.date}}",{%endfor%}]
     //aa=[...new Set(bb)]
-    //dateLabel = [{% for date in qs %}"{{date.date}}",{%endfor%}]
+    dateLabel = [{% for date in qs %}"{{date.date}}",{%endfor%}]
     var canvas = document.getElementById('myChart');
     var data = {
-        labels:[{% for date in qs %}"{{date.date}}",{%endfor%}],
+        //labels:[{% for date in qs2 %}"{{date.date}}",{%endfor%}],
+        labels:dateLabel,
         datasets: [
             {
                 label: 'Daily Bottle Records',
@@ -54,7 +55,8 @@
                 pointHoverBorderWidth: 2,
                 pointRadius: 5,
                 pointHitRadius: 10,
-                data: [{% for bottle in qs %}"{{bottle.bottles}}",{%endfor%}],
+                data: [{% for bottle in qs2 %}"{{bottle.number_of_bottles}}",{%endfor%}],
+                //data:[],
             },
             {
                 label: 'Daily Credit Records',
@@ -75,18 +77,29 @@
                 pointHoverBorderWidth: 2,
                 pointRadius: 5,
                 pointHitRadius: 10,
-                data: [{% for credit in qs %}"{{credit.credits}}",{%endfor%}],
+                data: [{% for credit in qs2 %}"{{credit.credits_earned}}",{%endfor%}],
+                //data:[],
             }
         ]
     };
     
     var option = {
-        showLines: true
+        showLines: true,
     };
     var myLineChart = new Chart(canvas,{
         type: 'bar',
         data:data,
-      options:option
+        options:option,
+        scales: {
+            xAxes: [{
+                type: 'time',
+                time: {
+                  unit: 'month'
+                }
+              }],
+        }
+
+      
     });
 
     //////////////////////////////////////////////////////////////
@@ -108,13 +121,15 @@
         console.log(a)
 
         addData(final_data[0])
+        console.log([{% for date in qs %}"{{date.date}}",{%endfor%}])
 
         
         
         
 
 
-        console.log(newDate)
+        console.log(final_data[0].date)
+
         {% comment %} if (myLineChart.data.labels.includes(newDate))
         {   
         
@@ -148,8 +163,10 @@
     }
 
     function addData(input){
+
         convertedDate = format(input.date)
         myLineChart.data.labels.push(convertedDate)
+        //myLineChart.data.labels = [...new Set(myLineChart.data.labels)];
         myLineChart.data.datasets.forEach((dataset) => {
             console.log(dataset)
             if(dataset.label == 'Daily Bottle Records'){

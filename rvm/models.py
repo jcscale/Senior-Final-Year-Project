@@ -34,7 +34,7 @@ class Deposit(models.Model):
         decimal_places=2, max_digits=15, blank=True, null=True)
     number_of_bottles = models.IntegerField(blank=True, null=True)
 
-    date = models.DateTimeField(default=datetime.datetime.now)
+    date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['-date']
