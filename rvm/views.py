@@ -44,10 +44,30 @@ def adminpage_home(request):
         'credits_earned__sum']
     deposit_records = Deposit.objects.filter().values('date').order_by(
         'date').annotate(bottles=Sum('number_of_bottles'), credits=Sum('credits_earned'))
+
     records = Deposit.objects.all().order_by("date")
     # records = Deposit.objects.annotate(
     #     created_at_date=TruncDate('date'),).order_by("date")
     # groupedset = groupby(records, attrgetter('created_at_date'))
+
+    bottle = Deposit.objects.aggregate(Sum('number_of_bottles'))[
+        'number_of_bottles__sum']
+    not_bottle = Deposit.objects.aggregate(Sum('not_bottle'))[
+        'not_bottle__sum']
+
+    try:
+        arr = []
+        for i in Deposit.objects.all():
+            arr.append(i)
+
+        print(arr)
+        print(len(arr))
+        arr.reverse()
+        arr.pop()
+        print(arr)
+    except:
+        pass
+
     print(records)
 
     print(bottles)
@@ -55,7 +75,10 @@ def adminpage_home(request):
     print(deposit_records)
     context = {
         'qs': deposit_records,
-        'qs2': records
+        'qs2': records,
+        'qs3': arr,
+        'bottle': bottle,
+        "not_bottle": not_bottle
     }
     return render(request, 'rvm/adminpage/home3.html', context)
 

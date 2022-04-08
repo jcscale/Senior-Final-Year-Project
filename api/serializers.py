@@ -12,7 +12,7 @@ class AccountSerializer(serializers.ModelSerializer):
 class DepositSerializer(serializers.ModelSerializer):
     class Meta:
         model = Deposit
-        fields = ['mobile_number', 'credits_earned',
+        fields = ['mobile_number', 'credits_earned', 'not_bottle',
                   'number_of_bottles', 'date']
 
 
