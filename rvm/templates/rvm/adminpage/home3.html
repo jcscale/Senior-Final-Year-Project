@@ -16,11 +16,11 @@
         <!-- Sidebar  -->
         <nav id="sidebar">
             <div class="sidebar-header">
-                <h3>Bootstrap Sidebar</h3>
+                <h3>RVM</h3>
             </div>
 
             <ul class="list-unstyled components">
-                <p>Dummy Heading</p>
+                <p>RVM</p>
                 <li class="active">
                     <a href="#homeSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Home</a>
                     <ul class="collapse list-unstyled" id="homeSubmenu">
@@ -57,15 +57,6 @@
                 </li>
                 <li>
                     <a href="#">Contact</a>
-                </li>
-            </ul>
-
-            <ul class="list-unstyled CTAs">
-                <li>
-                    <a href="https://bootstrapious.com/tutorial/files/sidebar.zip" class="download">Download source</a>
-                </li>
-                <li>
-                    <a href="https://bootstrapious.com/p/bootstrap-sidebar" class="article">Back to article</a>
                 </li>
             </ul>
         </nav>
@@ -110,7 +101,7 @@
                       <div class="card">
                         <div class="card-body">
                           <h5 class="card-title">Bottles Deposited</h5>
-                          <p class="card-text">123</p>
+                          <p class="card-text" id="bottles_deposited">{{bottle_count}}</p>
                         </div>
                       </div>
                     </div>
@@ -118,7 +109,7 @@
                       <div class="card">
                         <div class="card-body">
                           <h5 class="card-title">Credits Given</h5>
-                          <p class="card-text">123</p>
+                          <p class="card-text" id="credits_earned">{{credit_count}}</p>
                         </div>
                       </div>
                     </div>
@@ -284,7 +275,7 @@
                 pointHoverBorderWidth: 2,
                 pointRadius: 5,
                 pointHitRadius: 10,
-                data: [{{bottle}}, {{not_bottle}}],
+                data: [{{bottle_count}}, {{not_bottle_count}}],
                 //data:[],
             },
         ]
@@ -305,13 +296,40 @@
     var eventSource = new EventSource("{% url 'stream' %}")
 
     eventSource.onopen = function(){
-        console.log('yay its open');
+        //console.log('yay its open');
     }
 
     eventSource.onmessage = function(e){
-        //console.log(e)
+        console.log(e)
         //myLineChart.data.labels.pop()
         var final_data = JSON.parse(e.data)
+        //console.log(typeof(final_data))
+
+
+        credit_float = parseFloat(final_data[0].credits)
+
+        bot = parseInt(document.getElementById("bottles_deposited").innerHTML)
+        if (bot == NaN){
+            document.getElementById("bottles_deposited").innerHTML = final_data[0].bottles
+        }
+        else{
+            tot = bot + final_data[0].bottles
+            document.getElementById("bottles_deposited").innerHTML = tot
+        }
+
+        console.log(bot)
+        cre = parseFloat(document.getElementById("credits_earned").innerHTML)
+        
+        cred = cre + credit_float
+        
+        document.getElementById("credits_earned").innerHTML = cred
+
+        console.log((myLineChart2.data.datasets[0].data[1]))
+        console.log(myLineChart2.data.datasets[0].data[0] + final_data[0].bottles)
+        myLineChart2.data.datasets[0].data[0]=myLineChart2.data.datasets[0].data[0] + final_data[0].bottles
+        myLineChart2.data.datasets[0].data[1]=myLineChart2.data.datasets[0].data[1] + final_data[0].not_bottle
+        myLineChart2.update()
+        
 
         newDate = format(final_data[0].date)
 
@@ -360,7 +378,14 @@
         //console.log(datetime)
 
         addData(datetime, final_data[0])
+        //set(final_data[0].bottles)
+        
+        
+            
 
+            
+
+        
 
 
 

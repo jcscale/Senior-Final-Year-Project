@@ -3,7 +3,7 @@ from .forms import SignupForm, LoginForm, PinForm
 from django.contrib.auth import login, authenticate
 from .models import Deposit, User, Account
 from formtools.wizard.views import SessionWizardView
-from django.db.models import Sum
+from django.db.models import Sum, Count
 import time
 import json
 from django.core.serializers.json import DjangoJSONEncoder
@@ -45,6 +45,20 @@ def adminpage_home(request):
     deposit_records = Deposit.objects.filter().values('date').order_by(
         'date').annotate(bottles=Sum('number_of_bottles'), credits=Sum('credits_earned'))
 
+    total_bottles = Deposit.objects.all()[1:].values('number_of_bottles')
+    total_credits = Deposit.objects.all()[1:].values('credits_earned')
+    total_not_bottles = Deposit.objects.all()[1:].values('not_bottle')
+
+    bottle_count = 0
+    credit_count = 0
+    not_bottle_count = 0
+    for key, value in enumerate(total_bottles):
+        bottle_count += value['number_of_bottles']
+    for key, value in enumerate(total_credits):
+        credit_count += value['credits_earned']
+    for key, value in enumerate(total_not_bottles):
+        not_bottle_count += value['not_bottle']
+
     records = Deposit.objects.all().order_by("date")
     # records = Deposit.objects.annotate(
     #     created_at_date=TruncDate('date'),).order_by("date")
@@ -54,7 +68,6 @@ def adminpage_home(request):
         'number_of_bottles__sum']
     not_bottle = Deposit.objects.aggregate(Sum('not_bottle'))[
         'not_bottle__sum']
-
     try:
         arr = []
         for i in Deposit.objects.all():
@@ -78,7 +91,11 @@ def adminpage_home(request):
         'qs2': records,
         'qs3': arr,
         'bottle': bottle,
-        "not_bottle": not_bottle
+        "not_bottle": not_bottle,
+        "credits": credits,
+        "bottle_count": bottle_count,
+        'credit_count': credit_count,
+        'not_bottle_count': not_bottle_count
     }
     return render(request, 'rvm/adminpage/home3.html', context)
 
@@ -87,10 +104,16 @@ def event_stream():
     initial_data = ""
 
     while True:
+        arr = []
         deposit_records = Deposit.objects.filter().values('date').order_by(
-            '-id').annotate(bottles=Sum('number_of_bottles'), credits=Sum('credits_earned'))
-        data = json.dumps(list(deposit_records), cls=DjangoJSONEncoder)
-        print(data)
+            '-id').annotate(bottles=Sum('number_of_bottles'), credits=Sum('credits_earned'), not_bottle=Sum('not_bottle'))
+        bottle = Deposit.objects.aggregate(Sum('number_of_bottles'))[
+            'number_of_bottles__sum']
+        # deposit_records = Deposit.objects.order_by(
+        #     "-id").values("number_of_bottles", "credits_earned", "date")
+        data = json.dumps(list(deposit_records) +
+                          list(str(bottle)), cls=DjangoJSONEncoder)
+        # print(data)
         if not initial_data == data:
             yield "\ndata: {}\n\n".format(data)
             initial_data = data
